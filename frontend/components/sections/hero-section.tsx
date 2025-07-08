@@ -19,31 +19,7 @@ export function HeroSection() {
           transition={{ duration: 0.8 }}
           className="space-y-8"
         >
-          <div className="flex justify-center space-x-4 mb-8">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="p-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30"
-            >
-              <Shield className="h-8 w-8 text-cyan-400" />
-            </motion.div>
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-              className="p-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30"
-            >
-              <Zap className="h-8 w-8 text-purple-400" />
-            </motion.div>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="p-3 rounded-full bg-gradient-to-r from-green-500/20 to-cyan-500/20 border border-green-500/30"
-            >
-              <Lock className="h-8 w-8 text-green-400" />
-            </motion.div>
-          </div>
-
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold leading-tight">
+          <h1 className="text-4xl sm:text-6xl mt-20 lg:text-7xl font-bold leading-tight">
             <span className="bg-gradient-to-r from-white via-cyan-200 to-purple-400 bg-clip-text text-transparent">
               Privacy-First
             </span>

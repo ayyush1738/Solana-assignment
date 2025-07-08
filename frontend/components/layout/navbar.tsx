@@ -7,6 +7,8 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Shield, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WalletDisconnectButton, WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import Image from 'next/image';
+import pv from '@/public/pv.svg';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,19 +34,14 @@ export function Navbar() {
       animate={{ y: 0 }}
       className={cn(
         'fixed top-0 w-full z-50 transition-all duration-300',
-        scrolled 
-          ? 'bg-black/80 backdrop-blur-lg border-b border-white/10' 
+        scrolled
+          ? 'bg-black/80 backdrop-blur-lg border-b border-white/10'
           : 'bg-transparent'
       )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-cyan-400" />
-            <span className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              ZKDetect
-            </span>
-          </Link>
+          <Image src={pv} alt="Logo" width={100} height={140} className='cursor-pointer' />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
@@ -61,8 +58,8 @@ export function Navbar() {
 
           {/* Wallet Connection */}
           <div className="hidden md:flex md:items-center md:gap-2">
-            <WalletMultiButton/>
-            <WalletDisconnectButton/>
+            <WalletMultiButton />
+            <WalletDisconnectButton />
           </div>
 
           {/* Mobile menu button */}
@@ -96,8 +93,8 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="pt-4">
-                <WalletMultiButton/>
-                <WalletDisconnectButton/>
+                <WalletMultiButton />
+                <WalletDisconnectButton />
               </div>
             </div>
           </motion.div>
