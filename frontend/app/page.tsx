@@ -1,17 +1,16 @@
-import { HeroSection } from '@/components/sections/hero-section';
-import { FeatureSection } from '@/components/sections/feature-section';
-import { CTASection } from '@/components/sections/cta-section';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
+import React from 'react';
+import Navbar from '@/components/layout/Navbar';
+import HeroSection from '@/components/home/HeroSection';
+import FeaturesSection from '@/components/home/FeaturesSection';
+import Footer from '@/components/layout/Footer';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main>
         <HeroSection />
-        <FeatureSection />
-        <CTASection />
+        <FeaturesSection />
       </main>
       <Footer />
     </div>
