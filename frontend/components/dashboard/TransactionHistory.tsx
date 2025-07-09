@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react';
 import {
   Connection,
   ParsedTransactionWithMeta,
+  PublicKey,
   clusterApiUrl,
 } from '@solana/web3.js';
+import { getMint } from '@solana/spl-token';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -78,16 +80,27 @@ export default function TransactionHistory() {
           }
         }
 
-        // Extract amount & token
         let amount = '0';
         let token = 'SPL';
 
         const parsedIx = instructions.find(ix => ix.parsed?.info?.amount);
         if (parsedIx?.parsed?.info) {
-          amount = parsedIx.parsed.info.amount;
-          token = parsedIx.parsed.info.mint
-            ? `${parsedIx.parsed.info.mint.slice(0, 4)}...`
-            : 'SPL';
+          const rawAmount = parsedIx.parsed.info.amount;
+          const mintAddr = parsedIx.parsed.info.mint;
+
+          if (mintAddr) {
+            try {
+              const mintPubkey = new PublicKey(mintAddr);
+              const mintInfo = await getMint(connection, mintPubkey);
+              const decimals = mintInfo.decimals;
+              amount = (Number(rawAmount) / 10 ** decimals).toString();
+              token = `${mintAddr.slice(0, 4)}...`;
+            } catch {
+              amount = rawAmount;
+            }
+          } else {
+            amount = rawAmount;
+          }
         }
 
         txs.push({
