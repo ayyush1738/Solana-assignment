@@ -1,24 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
+import React, { useState, useContext } from 'react';
+import {
+  useConnection,
+  useWallet,
+  WalletContext,
+} from "@solana/wallet-adapter-react";
 import {
   Connection,
   Keypair,
-  PublicKey,
   SystemProgram,
   Transaction,
   clusterApiUrl,
 } from '@solana/web3.js';
+
 import {
-  TOKEN_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  MINT_SIZE,
-  getAssociatedTokenAddress,
-  createAssociatedTokenAccountInstruction,
+  TOKEN_2022_PROGRAM_ID,
+  getMintLen,
+  createInitializeMetadataPointerInstruction,
   createInitializeMintInstruction,
+  TYPE_SIZE,
+  LENGTH_SIZE,
+  ExtensionType,
+  getAssociatedTokenAddressSync,
+  createAssociatedTokenAccountInstruction,
   createMintToInstruction,
-} from '@solana/spl-token';
+} from "@solana/spl-token";
+
+import { notification } from "antd";
+import { createInitializeInstruction, pack } from "@solana/spl-token-metadata";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,16 +39,19 @@ import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function CreateTokenForm() {
-  const { publicKey, connected, sendTransaction } = useWallet();
+  const { connected } = useContext(WalletContext);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     symbol: '',
     description: '',
     totalSupply: '',
-    decimals: '9',
+    decimals: '1',
     imageUrl: '',
   });
+
+  const { connection } = useConnection();
+  const wallet = useWallet();
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -50,84 +63,137 @@ export default function CreateTokenForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!connected || !publicKey || !sendTransaction) {
+    if (!connected || !wallet.publicKey) {
       toast.error('Please connect your wallet first');
       return;
     }
 
-    setLoading(true);
     try {
+      setLoading(true);
+
+      // Validate decimals and supply
+      const decimals = Number(formData.decimals);
+      const totalSupply = Number(formData.totalSupply);
+      if (
+        isNaN(decimals) ||
+        isNaN(totalSupply) ||
+        decimals < 0 ||
+        decimals > 9 ||
+        totalSupply <= 0
+      ) {
+        toast.error('Please enter valid decimals (0-9) and total supply (>0)');
+        setLoading(false);
+        return;
+      }
+
+      const mintKeypair = Keypair.generate();
       const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-
-      const mint = Keypair.generate();
-      const decimals = parseInt(formData.decimals);
-      const totalSupply = parseInt(formData.totalSupply);
       const mintAmount = BigInt(totalSupply * Math.pow(10, decimals));
-      const lamports = await connection.getMinimumBalanceForRentExemption(MINT_SIZE);
 
-      const ata = await getAssociatedTokenAddress(
-        mint.publicKey,
-        publicKey,
+      const metadata = {
+        mint: mintKeypair.publicKey,
+        name: formData.name,
+        totalSupply: mintAmount,
+        symbol: formData.symbol,
+        description: formData.description,
+        uri: formData.imageUrl,
+        additionalMetadata: [],
+      };
+
+      const mintLen = getMintLen([ExtensionType.MetadataPointer]);
+      const metadataLen = TYPE_SIZE + LENGTH_SIZE + pack(metadata).length;
+
+      const lamports = await connection.getMinimumBalanceForRentExemption(
+        mintLen + metadataLen
+      );
+
+      const associatedToken = getAssociatedTokenAddressSync(
+        mintKeypair.publicKey,
+        wallet.publicKey,
         false,
-        TOKEN_PROGRAM_ID,
-        ASSOCIATED_TOKEN_PROGRAM_ID
+        TOKEN_2022_PROGRAM_ID
       );
 
       const transaction = new Transaction().add(
-        // 1. Allocate account for the Mint
         SystemProgram.createAccount({
-          fromPubkey: publicKey,
-          newAccountPubkey: mint.publicKey,
-          space: MINT_SIZE,
+          fromPubkey: wallet.publicKey,
+          newAccountPubkey: mintKeypair.publicKey,
+          space: mintLen,
           lamports,
-          programId: TOKEN_PROGRAM_ID,
+          programId: TOKEN_2022_PROGRAM_ID,
         }),
-        // 2. Initialize the Mint
+        createInitializeMetadataPointerInstruction(
+          mintKeypair.publicKey,
+          wallet.publicKey,
+          mintKeypair.publicKey,
+          TOKEN_2022_PROGRAM_ID
+        ),
         createInitializeMintInstruction(
-          mint.publicKey,
+          mintKeypair.publicKey,
           decimals,
-          publicKey,
-          null
+          wallet.publicKey,
+          null,
+          TOKEN_2022_PROGRAM_ID
         ),
-        // 3. Create associated token account for user
+        createInitializeInstruction({
+          programId: TOKEN_2022_PROGRAM_ID,
+          mint: mintKeypair.publicKey,
+          metadata: mintKeypair.publicKey,
+          name: metadata.name,
+          symbol: metadata.symbol,
+          uri: metadata.uri,
+          mintAuthority: wallet.publicKey,
+          updateAuthority: wallet.publicKey,
+        }),
         createAssociatedTokenAccountInstruction(
-          publicKey,
-          ata,
-          publicKey,
-          mint.publicKey
+          wallet.publicKey,
+          associatedToken,
+          wallet.publicKey,
+          mintKeypair.publicKey,
+          TOKEN_2022_PROGRAM_ID
         ),
-        // 4. Mint tokens to user's associated token account
         createMintToInstruction(
-          mint.publicKey,
-          ata,
-          publicKey,
-          mintAmount
+          mintKeypair.publicKey,
+          associatedToken,
+          wallet.publicKey,
+          metadata.totalSupply,
+          [],
+          TOKEN_2022_PROGRAM_ID
         )
       );
 
-      transaction.feePayer = publicKey;
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = wallet.publicKey;
+      transaction.recentBlockhash = (
+        await connection.getLatestBlockhash()
+      ).blockhash;
 
-      // Sign with Phantom and partial sign with Mint key
-      transaction.partialSign(mint);
-      const txSignature = await sendTransaction(transaction, connection);
-      await connection.confirmTransaction(txSignature, 'confirmed');
-
-      toast.success(`✅ Token Created! Mint: ${mint.publicKey.toBase58()}`);
-      console.log('Mint Address:', mint.publicKey.toBase58());
-
-      setFormData({
-        name: '',
-        symbol: '',
-        description: '',
-        totalSupply: '',
-        decimals: '9',
-        imageUrl: '',
+      // Signers: wallet and mintKeypair
+      // You need to pass both signers if using sendTransaction directly
+      await wallet.sendTransaction(transaction, connection, {
+        signers: [mintKeypair],
       });
-    } catch (error) {
+
+      notification.success({
+        message: "Success",
+        description: "Token created Successfully",
+        duration: 2,
+      });
+      // Optionally, you can reset the form here
+      setFormData({
+        name: "",
+        symbol: "",
+        description: "",
+        totalSupply: "",
+        decimals: "1",
+        imageUrl: "",
+      });
+    } catch (error: any) {
       console.error(error);
-      toast.error('❌ Failed to create token');
+      notification.error({
+        message: "Failed",
+        description: error?.message || "An error occurred while creating the Token",
+        duration: 2,
+      });
     } finally {
       setLoading(false);
     }
@@ -192,6 +258,7 @@ export default function CreateTokenForm() {
                 value={formData.totalSupply}
                 onChange={handleInputChange}
                 required
+                min="1"
               />
             </div>
             <div>

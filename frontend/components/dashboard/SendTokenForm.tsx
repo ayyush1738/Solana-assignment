@@ -2,6 +2,21 @@
 
 import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  clusterApiUrl,
+} from '@solana/web3.js';
+import {
+  TOKEN_2022_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  getMint,
+  createTransferInstruction,
+} from '@solana/spl-token';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +25,7 @@ import { Loader2, Send } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function SendTokenForm() {
-  const { connected, publicKey } = useWallet();
+  const { connected, publicKey, sendTransaction } = useWallet();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     tokenAddress: '',
@@ -20,23 +35,97 @@ export default function SendTokenForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!connected || !publicKey) {
+    if (!connected || !publicKey || !sendTransaction) {
       toast.error('Please connect your wallet first');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Implement token transfer logic
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+      const mint = new PublicKey(formData.tokenAddress.trim());
+      const recipient = new PublicKey(formData.recipientAddress.trim());
+
+      // 1. Fetch mint info for decimals
+      const mintInfo = await getMint(connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
+      const decimals = mintInfo.decimals;
+
+      // 2. Parse amount
+      const parsedAmount = Number(formData.amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error('Amount must be a positive number');
+      }
+      const amount = BigInt(Math.floor(parsedAmount * 10 ** decimals));
+
+      // 3. Get sender's ATA
+      const senderAta = await getAssociatedTokenAddress(
+        mint,
+        publicKey,
+        false,
+        TOKEN_2022_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+      );
+
+      // 4. Get recipient's ATA
+      const recipientAta = await getAssociatedTokenAddress(
+        mint,
+        recipient,
+        false,
+        TOKEN_2022_PROGRAM_ID,
+        ASSOCIATED_TOKEN_PROGRAM_ID
+      );
+
+      const transaction = new Transaction();
+
+      // 5. Ensure sender's ATA exists and is valid
+      const senderAtaInfo = await connection.getAccountInfo(senderAta);
+      if (!senderAtaInfo) {
+        throw new Error("Sender's associated token account does not exist or is invalid.");
+      }
+
+      // 6. Create recipient's ATA if it doesn't exist
+      const recipientAtaInfo = await connection.getAccountInfo(recipientAta);
+      if (!recipientAtaInfo) {
+        transaction.add(
+          createAssociatedTokenAccountInstruction(
+            publicKey,
+            recipientAta,
+            recipient,
+            mint,
+            TOKEN_2022_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          )
+        );
+      }
+
+      // 7. Add transfer instruction
+      transaction.add(
+        createTransferInstruction(
+          senderAta,
+          recipientAta,
+          publicKey,
+          amount,
+          [],
+          TOKEN_2022_PROGRAM_ID
+        )
+      );
+
+      transaction.feePayer = publicKey;
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+
+      const txid = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(txid, 'confirmed');
+
       toast.success('Tokens sent successfully!');
       setFormData({
         tokenAddress: '',
         amount: '',
         recipientAddress: '',
       });
-    } catch (error) {
-      toast.error('Failed to send tokens');
+    } catch (error: any) {
+      console.error(error);
+      toast.error('Failed to send tokens: ' + (error?.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }

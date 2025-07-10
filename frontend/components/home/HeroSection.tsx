@@ -17,7 +17,6 @@ export default function HeroSection() {
         <div className="text-center max-w-4xl mx-auto">
           {/* Badge */}
           <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-full px-4 py-2 text-sm font-medium mb-8">
-            <Sparkles className="h-4 w-4 text-purple-500" />
             <span>Built on Solana Devnet</span>
           </div>
 

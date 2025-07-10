@@ -37,16 +37,6 @@ export default function Footer() {
                   Create Token
                 </Link>
               </li>
-              <li>
-                <Link href="/dashboard#mint" className="text-muted-foreground hover:text-primary transition-colors">
-                  Mint Token
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard#send" className="text-muted-foreground hover:text-primary transition-colors">
-                  Send Token
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -67,7 +57,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com"
+                  href="https://github.com/ayyush1738/Solana-assignment"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary transition-colors flex items-center space-x-1"
@@ -92,7 +82,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 SolanaForge. Built with ❤️ by Your Developer Name</p>
+          <p>&copy; 2025 SolanaForge.</p>
         </div>
       </div>
     </footer>

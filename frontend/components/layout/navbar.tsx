@@ -34,9 +34,7 @@ export default function Navbar() {
               Dashboard
             </Link>
             <ThemeToggle />
-            <div className="wallet-adapter-button-trigger">
-              <WalletMultiButton />
-            </div>
+            <WalletMultiButton />
           </div>
 
           {/* Mobile menu button */}
@@ -63,10 +61,7 @@ export default function Navbar() {
             >
               Dashboard
             </Link>
-            <div className="!bg-gradient-to-r !from-purple-500 !to-blue-500 !border-none !rounded-lg !h-10 !px-6 !text-sm !font-medium hover:!from-purple-600 hover:!to-blue-600 !transition-all !duration-200">
               <WalletMultiButton />
-            </div>
-
           </div>
         )}
       </div>

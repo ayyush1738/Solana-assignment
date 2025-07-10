@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import {
   Connection,
@@ -9,19 +9,58 @@ import {
   clusterApiUrl,
 } from '@solana/web3.js';
 import {
+  TOKEN_2022_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
   createMintToInstruction,
   getMint,
-  TOKEN_PROGRAM_ID,
-  ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { unpack } from '@solana/spl-token-metadata';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Coins } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+
+// Helper to fetch SPL Token 2022 metadata from the mint account
+async function fetchToken2022Metadata(
+  connection: Connection,
+  mintAddress: string
+): Promise<{ name: string; symbol: string; uri: string } | null> {
+  try {
+    const mintPubkey = new PublicKey(mintAddress);
+    const mintAccount = await connection.getAccountInfo(mintPubkey);
+    if (!mintAccount) return null;
+
+    // Use unpack to get all extensions
+    const extensions = unpack(mintAccount.data);
+    // Find the extension with name, symbol, and uri fields
+    const metadataExt = extensions.find(
+      (ext) =>
+        ext &&
+        typeof ext === 'object' &&
+        'name' in ext &&
+        'symbol' in ext &&
+        'uri' in ext
+    );
+    if (!metadataExt) return null;
+
+    // The extension object contains name, symbol, uri
+    const { name, symbol, uri } = metadataExt as any;
+    return { name, symbol, uri };
+  } catch (err) {
+    return null;
+  }
+}
 
 export default function MintTokenForm() {
   const { connected, publicKey, sendTransaction } = useWallet();
@@ -31,6 +70,35 @@ export default function MintTokenForm() {
     amount: '',
     recipientAddress: '',
   });
+
+  const [tokenMetadata, setTokenMetadata] = useState<{
+    name: string;
+    symbol: string;
+    uri: string;
+  } | null>(null);
+
+  // Fetch metadata when tokenAddress changes
+  const fetchAndSetTokenMetadata = useCallback(async (mintAddress: string) => {
+    if (!mintAddress) {
+      setTokenMetadata(null);
+      return;
+    }
+    try {
+      const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+      const metadata = await fetchToken2022Metadata(connection, mintAddress);
+      setTokenMetadata(metadata);
+    } catch {
+      setTokenMetadata(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (formData.tokenAddress) {
+      fetchAndSetTokenMetadata(formData.tokenAddress);
+    } else {
+      setTokenMetadata(null);
+    }
+  }, [formData.tokenAddress, fetchAndSetTokenMetadata]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,23 +115,28 @@ export default function MintTokenForm() {
     setLoading(true);
     try {
       const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-      const mint = new PublicKey(formData.tokenAddress);
-      const recipient = new PublicKey(formData.recipientAddress);
+      const mint = new PublicKey(formData.tokenAddress.trim());
+      const recipient = new PublicKey(formData.recipientAddress.trim());
 
-      // 🔥 Fetch actual decimals
-      const mintInfo = await getMint(connection, mint);
+      // Validate amount
+      const mintInfo = await getMint(connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
       const decimals = mintInfo.decimals;
+      const parsedAmount = Number(formData.amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error('Amount must be a positive number');
+      }
+      const amount = BigInt(Math.floor(parsedAmount * 10 ** decimals));
 
+      // Get or create recipient ATA
       const ata = await getAssociatedTokenAddress(
         mint,
         recipient,
         false,
-        TOKEN_PROGRAM_ID,
+        TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
       );
 
       const ataInfo = await connection.getAccountInfo(ata);
-      const amount = BigInt(Number(formData.amount) * 10 ** decimals);
 
       const transaction = new Transaction();
 
@@ -73,13 +146,22 @@ export default function MintTokenForm() {
             publicKey,
             ata,
             recipient,
-            mint
+            mint,
+            TOKEN_2022_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
           )
         );
       }
 
       transaction.add(
-        createMintToInstruction(mint, ata, publicKey, amount)
+        createMintToInstruction(
+          mint,
+          ata,
+          publicKey,
+          amount,
+          [],
+          TOKEN_2022_PROGRAM_ID
+        )
       );
 
       transaction.feePayer = publicKey;
@@ -91,9 +173,10 @@ export default function MintTokenForm() {
 
       toast.success(`✅ Minted ${formData.amount} tokens!`);
       setFormData({ tokenAddress: '', amount: '', recipientAddress: '' });
-    } catch (error) {
+      setTokenMetadata(null);
+    } catch (error: any) {
       console.error(error);
-      toast.error('❌ Minting failed');
+      toast.error('❌ Minting failed: ' + (error?.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +189,9 @@ export default function MintTokenForm() {
           <Coins className="h-5 w-5" />
           <span>Mint Tokens</span>
         </CardTitle>
-        <CardDescription>Mint additional tokens to a specified address</CardDescription>
+        <CardDescription>
+          Mint additional tokens to a specified address
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -120,6 +205,21 @@ export default function MintTokenForm() {
               onChange={handleInputChange}
               required
             />
+            {tokenMetadata && (
+              <div className="mt-2 text-sm text-gray-600">
+                <strong>Name:</strong> {tokenMetadata.name} <br />
+                <strong>Symbol:</strong> {tokenMetadata.symbol} <br />
+                <strong>URI:</strong>{' '}
+                <a
+                  href={tokenMetadata.uri}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  {tokenMetadata.uri}
+                </a>
+              </div>
+            )}
           </div>
           <div>
             <Label htmlFor="amount">Amount to Mint</Label>
@@ -127,7 +227,8 @@ export default function MintTokenForm() {
               id="amount"
               name="amount"
               type="number"
-              step="0.000000001"
+              min="0"
+              step="any"
               placeholder="e.g. 1000"
               value={formData.amount}
               onChange={handleInputChange}
