@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Coins, Send, Shield, Zap, Globe } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 export default function FeaturesSection() {
   const features = [

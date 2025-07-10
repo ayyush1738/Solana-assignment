@@ -24,14 +24,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 import { Loader2, Coins } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-// Helper to fetch SPL Token 2022 metadata from the mint account
 async function fetchToken2022Metadata(
   connection: Connection,
   mintAddress: string
@@ -41,22 +40,18 @@ async function fetchToken2022Metadata(
     const mintAccount = await connection.getAccountInfo(mintPubkey);
     if (!mintAccount) return null;
 
-    // Use unpack to get all extensions
-    const extensions = unpack(mintAccount.data);
-    // Find the extension with name, symbol, and uri fields
-    const metadataExt = extensions.find(
-      (ext) =>
-        ext &&
-        typeof ext === 'object' &&
-        'name' in ext &&
-        'symbol' in ext &&
-        'uri' in ext
-    );
-    if (!metadataExt) return null;
-
-    // The extension object contains name, symbol, uri
-    const { name, symbol, uri } = metadataExt as any;
-    return { name, symbol, uri };
+    const metadataExt = unpack(mintAccount.data);
+    if (
+      metadataExt &&
+      typeof metadataExt === 'object' &&
+      'name' in metadataExt &&
+      'symbol' in metadataExt &&
+      'uri' in metadataExt
+    ) {
+      const { name, symbol, uri } = metadataExt as any;
+      return { name, symbol, uri };
+    }
+    return null;
   } catch (err) {
     return null;
   }
@@ -77,7 +72,6 @@ export default function MintTokenForm() {
     uri: string;
   } | null>(null);
 
-  // Fetch metadata when tokenAddress changes
   const fetchAndSetTokenMetadata = useCallback(async (mintAddress: string) => {
     if (!mintAddress) {
       setTokenMetadata(null);
@@ -118,7 +112,6 @@ export default function MintTokenForm() {
       const mint = new PublicKey(formData.tokenAddress.trim());
       const recipient = new PublicKey(formData.recipientAddress.trim());
 
-      // Validate amount
       const mintInfo = await getMint(connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
       const decimals = mintInfo.decimals;
       const parsedAmount = Number(formData.amount);
@@ -127,7 +120,6 @@ export default function MintTokenForm() {
       }
       const amount = BigInt(Math.floor(parsedAmount * 10 ** decimals));
 
-      // Get or create recipient ATA
       const ata = await getAssociatedTokenAddress(
         mint,
         recipient,
@@ -171,12 +163,12 @@ export default function MintTokenForm() {
       const txid = await sendTransaction(transaction, connection);
       await connection.confirmTransaction(txid, 'confirmed');
 
-      toast.success(`✅ Minted ${formData.amount} tokens!`);
+      toast.success(`Minted ${formData.amount} tokens!`);
       setFormData({ tokenAddress: '', amount: '', recipientAddress: '' });
       setTokenMetadata(null);
     } catch (error: any) {
       console.error(error);
-      toast.error('❌ Minting failed: ' + (error?.message || 'Unknown error'));
+      toast.error('Minting failed: ' + (error?.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }

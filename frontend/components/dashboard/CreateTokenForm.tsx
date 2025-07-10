@@ -30,11 +30,11 @@ import {
 import { notification } from "antd";
 import { createInitializeInstruction, pack } from "@solana/spl-token-metadata";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
 import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -71,7 +71,6 @@ export default function CreateTokenForm() {
     try {
       setLoading(true);
 
-      // Validate decimals and supply
       const decimals = Number(formData.decimals);
       const totalSupply = Number(formData.totalSupply);
       if (
@@ -167,8 +166,6 @@ export default function CreateTokenForm() {
         await connection.getLatestBlockhash()
       ).blockhash;
 
-      // Signers: wallet and mintKeypair
-      // You need to pass both signers if using sendTransaction directly
       await wallet.sendTransaction(transaction, connection, {
         signers: [mintKeypair],
       });
@@ -178,7 +175,6 @@ export default function CreateTokenForm() {
         description: "Token created Successfully",
         duration: 2,
       });
-      // Optionally, you can reset the form here
       setFormData({
         name: "",
         symbol: "",

@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { BackgroundBeams } from '@/components/ui/background-beams';
+import { Button } from '../ui/button';
+import { BackgroundBeams } from '../ui/background-beams';
 
 export default function HeroSection() {
   return (
