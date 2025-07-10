@@ -14,7 +14,7 @@ export default function Footer() {
                 <Wallet className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                SolanaForge
+                SolForge
               </span>
             </div>
             <p className="text-sm text-muted-foreground max-w-md">
