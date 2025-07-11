@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import WalletMultiButton from '../ClientWalletButton';
 import { Menu, X, Wallet } from 'lucide-react';
-import { ThemeToggle } from '../ui/theme-toggle';
-import { Button } from '../ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Button } from '@/components/ui/button';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

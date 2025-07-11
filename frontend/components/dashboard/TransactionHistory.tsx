@@ -9,10 +9,10 @@ import {
 } from '@solana/web3.js';
 import { getMint } from '@solana/spl-token';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ExternalLink, RefreshCw } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
 
 interface Transaction {

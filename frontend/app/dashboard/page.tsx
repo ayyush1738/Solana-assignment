@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Plus, Coins, Send, Wallet as WalletIcon } from 'lucide-react';
-import Navbar from '../../components/layout/Navbar';
-import Footer from '../../components/layout/Footer';
-import WalletInfo from '../../components/dashboard/WalletInfo';
-import CreateTokenForm from '../../components/dashboard/CreateTokenForm';
-import MintTokenForm from '../../components/dashboard/MintTokenForm';
-import SendTokenForm from '../../components/dashboard/SendTokenForm';
-import TransactionHistory from '../../components/dashboard/TransactionHistory';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import WalletInfo from '@/components/dashboard/WalletInfo';
+import CreateTokenForm from '@/components/dashboard/CreateTokenForm';
+import MintTokenForm from '@/components/dashboard/MintTokenForm';
+import SendTokenForm from '@/components/dashboard/SendTokenForm';
+import TransactionHistory from '@/components/dashboard/TransactionHistory';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Dashboard() {
   const { connected } = useWallet();
