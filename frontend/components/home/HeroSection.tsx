@@ -1,12 +1,20 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 
 export default function HeroSection() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleLaunch = () => {
+    setLoading(true);
+    router.push('/dashboard');
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-background/50">
       <BackgroundBeams />
@@ -36,15 +44,24 @@ export default function HeroSection() {
 
           {/* CTA Button */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/dashboard">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white border-none h-12 px-8 text-lg font-medium transition-all duration-200 transform hover:scale-105"
-              >
-                Launch Dashboard
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              disabled={loading}
+              onClick={handleLaunch}
+              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white border-none h-12 px-8 text-lg font-medium transition-all duration-200 transform hover:scale-105"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  Launch Dashboard
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
