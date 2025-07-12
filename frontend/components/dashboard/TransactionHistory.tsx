@@ -167,6 +167,7 @@ export default function TransactionHistory() {
             size="sm"
             onClick={fetchTransactions}
             disabled={loading}
+            className='bg-blue-600'
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>

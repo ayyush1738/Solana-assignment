@@ -30,6 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Coins } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { metadata } from '@/app/layout';
 
 async function fetchToken2022Metadata(
   connection: Connection,
@@ -174,6 +175,7 @@ export default function MintTokenForm() {
     }
   };
 
+
   return (
     <Card>
       <CardHeader>
@@ -197,21 +199,6 @@ export default function MintTokenForm() {
               onChange={handleInputChange}
               required
             />
-            {tokenMetadata && (
-              <div className="mt-2 text-sm text-gray-600">
-                <strong>Name:</strong> {tokenMetadata.name} <br />
-                <strong>Symbol:</strong> {tokenMetadata.symbol} <br />
-                <strong>URI:</strong>{' '}
-                <a
-                  href={tokenMetadata.uri}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  {tokenMetadata.uri}
-                </a>
-              </div>
-            )}
           </div>
           <div>
             <Label htmlFor="amount">Amount to Mint</Label>
