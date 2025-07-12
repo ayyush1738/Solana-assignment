@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useContext } from 'react';
+//Library for Solana compatible wallets
 import {
   useConnection,
   useWallet,
   WalletContext,
 } from "@solana/wallet-adapter-react";
+//Solana web3.js helps with establishing the connection and to interact with Solana blockchain
 import {
   Connection,
   Keypair,
@@ -14,6 +16,10 @@ import {
   clusterApiUrl,
 } from '@solana/web3.js';
 
+// Using TOKEN PROGRAM 2022 of SPL token because it helps to create 
+// SPL tokens along with the metadata on Solana, Do not use the latest Docs 
+// for 2022 PROGRAM in case you want to upgrade any of the feature Because
+// they are still under progress and doesn't support the metadata yet
 import {
   TOKEN_2022_PROGRAM_ID,
   getMintLen,
@@ -27,7 +33,9 @@ import {
   createMintToInstruction,
 } from "@solana/spl-token";
 
+//Real time information of token creation/minting/transfer
 import { notification } from "antd";
+
 import { createInitializeInstruction, pack } from "@solana/spl-token-metadata";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,7 +43,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus } from 'lucide-react';
+import { BriefcaseBusiness, DoorClosed, Loader2, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function CreateTokenForm() {
@@ -46,7 +54,7 @@ export default function CreateTokenForm() {
     symbol: '',
     description: '',
     totalSupply: '',
-    decimals: '1',
+    decimals: '1', //Decimal conversion for Solana 
     imageUrl: '',
   });
 
@@ -84,11 +92,12 @@ export default function CreateTokenForm() {
         setLoading(false);
         return;
       }
-
+      //Signer
       const mintKeypair = Keypair.generate();
       const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
       const mintAmount = BigInt(totalSupply * Math.pow(10, decimals));
 
+      //Metadata for the token
       const metadata = {
         mint: mintKeypair.publicKey,
         name: formData.name,
@@ -113,6 +122,7 @@ export default function CreateTokenForm() {
         TOKEN_2022_PROGRAM_ID
       );
 
+      //SPL method to create token
       const transaction = new Transaction().add(
         SystemProgram.createAccount({
           fromPubkey: wallet.publicKey,

@@ -30,7 +30,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Coins } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { metadata } from '@/app/layout';
 
 async function fetchToken2022Metadata(
   connection: Connection,

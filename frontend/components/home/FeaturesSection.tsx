@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Coins, Send, Shield, Zap, Globe } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+//Provide the UI related data to the 
 export default function FeaturesSection() {
   const features = [
     {

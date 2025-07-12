@@ -10,7 +10,7 @@ export function ThemeClientProvider({ children }: { children: React.ReactNode })
     setMounted(true);
   }, []);
 
-  if (!mounted) return null; // Prevent hydration mismatch
+  if (!mounted) return null; 
 
   return (
     <ThemeProvider

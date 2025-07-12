@@ -3,20 +3,20 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
+//As a part of wallet adapter react UI
 import WalletMultiButton from '../ClientWalletButton';
 import { Menu, X, Wallet } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
 
+//Navbar contains Logo, connect wallet button
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { connected, publicKey } = useWallet();
-
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
@@ -28,7 +28,6 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
               Dashboard
@@ -37,7 +36,6 @@ export default function Navbar() {
             <WalletMultiButton />
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden flex items-center space-x-2">
             <ThemeToggle />
             <Button
@@ -50,8 +48,6 @@ export default function Navbar() {
             </Button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden py-4 space-y-4">
             <Link
