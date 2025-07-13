@@ -1,3 +1,4 @@
+//Transferring token from one account to another but not adding up to the supply
 'use client';
 
 import React, { useState } from 'react';
@@ -32,7 +33,6 @@ export default function SendTokenForm() {
     amount: '',
     recipientAddress: '',
   });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!connected || !publicKey || !sendTransaction) {
@@ -45,19 +45,17 @@ export default function SendTokenForm() {
       const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
       const mint = new PublicKey(formData.tokenAddress.trim());
       const recipient = new PublicKey(formData.recipientAddress.trim());
-
-      // 1. Fetch mint info for decimals
+      //Collecting mint information
       const mintInfo = await getMint(connection, mint, undefined, TOKEN_2022_PROGRAM_ID);
       const decimals = mintInfo.decimals;
-
-      // 2. Parse amount
       const parsedAmount = Number(formData.amount);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         throw new Error('Amount must be a positive number');
       }
+      //Amount based on the specified number * decimals
       const amount = BigInt(Math.floor(parsedAmount * 10 ** decimals));
 
-      // 3. Get sender's ATA
+      //Sender associated token address
       const senderAta = await getAssociatedTokenAddress(
         mint,
         publicKey,
@@ -65,8 +63,7 @@ export default function SendTokenForm() {
         TOKEN_2022_PROGRAM_ID,
         ASSOCIATED_TOKEN_PROGRAM_ID
       );
-
-      // 4. Get recipient's ATA
+      //Reciever's associated token address
       const recipientAta = await getAssociatedTokenAddress(
         mint,
         recipient,
@@ -77,13 +74,11 @@ export default function SendTokenForm() {
 
       const transaction = new Transaction();
 
-      // 5. Ensure sender's ATA exists and is valid
       const senderAtaInfo = await connection.getAccountInfo(senderAta);
       if (!senderAtaInfo) {
         throw new Error("Sender's associated token account does not exist or is invalid.");
       }
 
-      // 6. Create recipient's ATA if it doesn't exist
       const recipientAtaInfo = await connection.getAccountInfo(recipientAta);
       if (!recipientAtaInfo) {
         transaction.add(
@@ -98,7 +93,6 @@ export default function SendTokenForm() {
         );
       }
 
-      // 7. Add transfer instruction
       transaction.add(
         createTransferInstruction(
           senderAta,
@@ -110,6 +104,7 @@ export default function SendTokenForm() {
         )
       );
 
+      //Sender will be the fee payer
       transaction.feePayer = publicKey;
       const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;

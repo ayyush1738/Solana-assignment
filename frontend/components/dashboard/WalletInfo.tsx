@@ -1,3 +1,4 @@
+//Fetches information about the wallet such as Network, Address conected, Balance
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ export default function WalletInfo() {
     if (!publicKey || !connected) return;
 
     setLoading(true);
+    //Get balance
     try {
       const balance = await connection.getBalance(publicKey);
       setBalance(balance / LAMPORTS_PER_SOL);

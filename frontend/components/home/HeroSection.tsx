@@ -1,3 +1,4 @@
+//UI for the Hero section which routes to dashboard
 'use client';
 
 import React, { useState } from 'react';
@@ -23,12 +24,10 @@ export default function HeroSection() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
         <div className="text-center max-w-4xl mx-auto">
-          {/* Badge */}
           <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-full px-4 py-2 text-sm font-medium mb-8">
             <span>Built on Solana Devnet</span>
           </div>
 
-          {/* Headline */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
             Create and Mint Your Own{' '}
             <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
@@ -36,13 +35,11 @@ export default function HeroSection() {
             </span>
           </h1>
 
-          {/* Subheadline */}
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             The easiest way to create, mint, and manage SPL tokens on Solana.
             No coding required - just connect your wallet and start building.
           </p>
 
-          {/* CTA Button */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"

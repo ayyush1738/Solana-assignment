@@ -1,5 +1,5 @@
 'use client';
-
+//Wallet provider such as Phantom, metamask and solfare
 import React, { useMemo } from 'react';
 import {
   ConnectionProvider,
@@ -16,7 +16,6 @@ import {
 } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
 
-// Default styles that can be overridden by your app
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 export default function WalletContextProvider({
@@ -24,10 +23,8 @@ export default function WalletContextProvider({
 }: {
   children: React.ReactNode;
 }) {
-  // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Devnet;
 
-  // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   const wallets = useMemo(

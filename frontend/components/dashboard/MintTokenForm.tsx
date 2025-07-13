@@ -1,3 +1,5 @@
+//Minting token to a specified account and adding up to the total supply
+
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -40,6 +42,7 @@ async function fetchToken2022Metadata(
     const mintAccount = await connection.getAccountInfo(mintPubkey);
     if (!mintAccount) return null;
 
+    //Using metadata for the token from the signed account
     const metadataExt = unpack(mintAccount.data);
     if (
       metadataExt &&
@@ -99,6 +102,7 @@ export default function MintTokenForm() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  //Minting function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!connected || !publicKey || !sendTransaction) {

@@ -1,3 +1,4 @@
+//List of previous transactions using the tx id
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -29,17 +30,17 @@ export default function TransactionHistory() {
   const { connected, publicKey } = useWallet();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
-
+  //Fetching the transactions by...
   const fetchTransactions = async () => {
     if (!connected || !publicKey) return;
     setLoading(true);
-
+    //Establishing the connection and retrieving the signatures
     try {
       const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
       const signatures = await connection.getSignaturesForAddress(publicKey, {
         limit: 10,
       });
-
+      //listing them using an array
       const txs: Transaction[] = [];
 
       for (const sigInfo of signatures) {
@@ -47,7 +48,7 @@ export default function TransactionHistory() {
           await connection.getParsedTransaction(sigInfo.signature, 'confirmed');
 
         if (!parsedTx) continue;
-
+        
         const { transaction, meta } = parsedTx;
         const instructions = transaction.message.instructions as any[];
 

@@ -12,7 +12,6 @@ export default function WalletMultiButtonClient() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Ensure we only render this after the component is mounted
     setMounted(true);
   }, []);
 

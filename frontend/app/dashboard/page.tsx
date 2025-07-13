@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Plus, Coins, Send, Wallet as WalletIcon } from 'lucide-react';
@@ -13,9 +13,11 @@ import SendTokenForm from '@/components/dashboard/SendTokenForm';
 import TransactionHistory from '@/components/dashboard/TransactionHistory';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+//Routed component for the main Dashboard
 export default function Dashboard() {
+  //Checks wether the wallet is conected or not
   const { connected } = useWallet();
-
+  //if not connected it will show the UI to select the wallet
   if (!connected) {
     return (
       <div className="min-h-screen bg-background">
@@ -36,7 +38,7 @@ export default function Dashboard() {
       </div>
     );
   }
-
+  //if connected it will show the Dashboard
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -49,7 +51,7 @@ export default function Dashboard() {
         </div>
 
         <WalletInfo />
-
+        {/* UI Tabs are defined in the components/ui/ folder ans the logic is in the components/dashboard/ */}
         <Tabs defaultValue="create" className="space-y-8">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="create" className="flex items-center space-x-2">
