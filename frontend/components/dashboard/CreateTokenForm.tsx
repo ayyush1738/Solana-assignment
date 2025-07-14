@@ -193,6 +193,7 @@ export default function CreateTokenForm() {
         decimals: "1",
         imageUrl: "",
       });
+      toast.success(`Created ${formData.name} tokens!`);
     } catch (error: any) {
       console.error(error);
       notification.error({
